@@ -1,0 +1,35 @@
+---
+title: "Project 2 Outline"
+format: html
+editor_options: 
+  chunk_output_type: console
+---
+
+Load require libraries
+```{r packages}
+#| label: load-packages
+#| message: false
+#| warning: false
+
+library(jsonlite)
+library(tibble)
+library(dplyr)
+```
+
+## Accessing the Open-Meteo API
+We begin by retrieving hourly temperature data for Raleigh, NC using the public Open-Meteo API. No API key is required. The response includes hourly forecasts such as temperature, wind, and precipitation.
+
+```{r}
+#URL for hourly temperature forecast in Raleigh, NC
+url <- "https://api.open-meteo.com/v1/forecast?latitude=35.78&longitude=-78.64&hourly=temperature_2m"
+
+#get and parse data
+weather_raw <- fromJSON(url)
+
+#extract hourly temperature data
+temp_df <- as_tibble(weather_raw$hourly)
+
+#display some of the data
+glimpse(temp_df)
+```
+
