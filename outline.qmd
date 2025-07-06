@@ -22,7 +22,8 @@ We begin by retrieving hourly temperature data for Raleigh, NC using the public 
 
 ```{r}
 #URL for hourly temperature forecast in Raleigh, NC
-url <- "https://api.open-meteo.com/v1/forecast?latitude=35.78&longitude=-78.64&hourly=temperature_2m"
+url <- "https://api.open-meteo.com/v1/forecast?latitude=35.78&longitude=-78.64&hourly=temperature_2m&temperature_unit=fahrenheit"
+
 
 #get and parse data
 weather_raw <- fromJSON(url)
