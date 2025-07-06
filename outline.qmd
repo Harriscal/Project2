@@ -14,6 +14,7 @@ Load require libraries
 library(jsonlite)
 library(tibble)
 library(dplyr)
+library(lubridate)
 ```
 
 ## Accessing the Open-Meteo API
@@ -33,3 +34,26 @@ temp_df <- as_tibble(weather_raw$hourly)
 glimpse(temp_df)
 ```
 
+## Summarizing Hourly Temperature Data
+
+To better understand trends, we summarize the hourly temperature values into daily statistics. For each day in the dataset, we calculate the **minimum**, **maximum**, and **average** temperature.
+
+```{r}
+#convert 'time' from character to a proper date-time format
+temp_df <- temp_df |> 
+  mutate(datetime = ymd_hm(time),  #parse correctly
+         date = as_date(datetime)) #extract just the date for daily summarization
+
+#group by date and summarize
+daily_summary <- temp_df |> 
+  group_by(date) |> 
+  summarise(
+    min_temp = min(temperature_2m, na.rm = TRUE),
+    max_temp = max(temperature_2m, na.rm = TRUE),
+    mean_temp = mean(temperature_2m, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+#display table
+daily_summary
+```
