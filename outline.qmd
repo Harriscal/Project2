@@ -15,6 +15,10 @@ library(jsonlite)
 library(tibble)
 library(dplyr)
 library(lubridate)
+library(ggplot2)
+library(tidyverse)
+library(scales)
+library(ggridges)
 ```
 
 ## Accessing the Open-Meteo API
@@ -73,7 +77,7 @@ daily_summary
 
 ## Flagging Hot Days Based on Max Temperature
 
-To prepare for filtering and visualization, we create a new column that flags "hot days" — defined here as days when the maximum temperature reaches or exceeds 32°C (approximately 90°F).
+To prepare for filtering and visualization, we create a new column that flags "hot days" — defined here as days when the maximum temperature reaches or exceeds.
 
 ```{r}
 #add a "hot_day" column based on max temperature
@@ -83,3 +87,105 @@ daily_summary <- daily_summary |>
 #display table
 daily_summary
 ```
+
+
+## Summarizing the Weather Data
+
+```{r}
+#contingency table of hot vs not-hot
+table(daily_summary$hot_day)
+
+#summary statistics grouped by hot_day
+daily_summary |> 
+  group_by(hot_day) |> 
+  summarise(
+    mean_uv = mean(mean_uv, na.rm = TRUE),
+    mean_humidity = mean(mean_humidity, na.rm = TRUE),
+    mean_precip = mean(total_precip, na.rm = TRUE),
+    .groups = "drop"
+  )
+```
+
+## Creating Plots
+
+Plot 1: Daily Temperature Ranges (Min, Mean, Max)
+```{r}
+daily_summary_long <- daily_summary |> 
+  pivot_longer(cols = c(min_temp, mean_temp, max_temp),
+               names_to = "Temperature_Type", values_to = "Temperature")
+
+ggplot(daily_summary_long, aes(x = date, y = Temperature, color = Temperature_Type)) +
+  geom_line(linewidth = 1.2) +
+  geom_point(size = 2) +
+  labs(title = "Daily Temperature Ranges",
+       x = "Date", y = "Temperature (°F)", color = "Type") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Plot 2: UV Index Bar Chart with Gradient Fill
+```{r}
+ggplot(daily_summary, aes(x = date, y = mean_uv, fill = mean_uv)) +
+  geom_col(color = "black") +
+  scale_fill_viridis_c(option = "D", name = "UV Index") +
+  labs(
+    title = "Daily Mean UV Index (Gradient Colored)",
+    x = "Date", y = "Mean UV Index"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+Plot 3: Bubble Plot — Humidity vs Temperature
+```{r}
+#simulate hourly-like data around the mean temps for hot days
+set.seed(123)
+sim_data <- daily_summary |>
+  filter(hot_day) |>
+  rowwise() |>
+  mutate(hourly_temps = list(rnorm(24, mean = mean_temp, sd = 1.2))) |>
+  unnest(hourly_temps) |>
+  mutate(date = format(date, "%b %d"))
+
+#ridgeline plot
+ggplot(sim_data, aes(x = hourly_temps, y = fct_rev(factor(date)), fill = date)) +
+  geom_density_ridges(scale = 1.2, alpha = 0.8, color = "white") +
+  labs(
+    title = "Temperature Distribution on Hot Days",
+    subtitle = "Hourly-level simulation from daily mean temperatures",
+    x = "Temperature (°F)",
+    y = "Hot Day"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+ 
+Plot 4: Heatmap of Cloud Cover
+```{r}
+#create date + hour breakdown
+cloudcover_hourly <- temp_df |>
+  mutate(
+    datetime = ymd_hm(time),
+    date = as_date(datetime),
+    hour = hour(datetime)
+  ) |>
+  group_by(date, hour) |>
+  summarise(cloud = mean(cloudcover, na.rm = TRUE), .groups = "drop")
+
+#heatmap with shades of blue
+ggplot(cloudcover_hourly, aes(x = hour, y = date, fill = cloud)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient(
+    name = "Cloud Cover (%)",
+    low = "#deebf7",   # light blue
+    high = "#08519c"   # dark blue
+  ) +
+  labs(
+    title = "Cloud Cover Heatmap by Date and Hour",
+    x = "Hour of Day", y = "Date"
+  ) +
+  theme_minimal()
+```
+
+
+

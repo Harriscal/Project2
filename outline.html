@@ -101,7 +101,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jsonlite)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tibble)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lubridate)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(scales)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggridges)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <section id="accessing-the-open-meteo-api" class="level2">
 <h2 class="anchored" data-anchor-id="accessing-the-open-meteo-api">Accessing the Open-Meteo API</h2>
@@ -130,11 +134,11 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 Columns: 7
 $ time                 &lt;chr&gt; "2025-07-07T00:00", "2025-07-07T01:00", "2025-07-…
 $ temperature_2m       &lt;dbl&gt; 74.8, 73.4, 73.0, 72.8, 72.8, 72.7, 73.5, 73.8, 7…
-$ relative_humidity_2m &lt;int&gt; 88, 90, 94, 95, 95, 98, 94, 92, 91, 90, 91, 90, 8…
+$ relative_humidity_2m &lt;int&gt; 90, 91, 94, 94, 95, 95, 95, 96, 94, 93, 93, 93, 9…
 $ precipitation        &lt;dbl&gt; 4.6, 2.4, 2.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,…
 $ wind_speed_10m       &lt;dbl&gt; 20.9, 20.9, 23.6, 18.7, 17.7, 13.7, 13.7, 16.5, 1…
-$ cloudcover           &lt;int&gt; 100, 100, 100, 100, 100, 100, 100, 100, 96, 39, 2…
-$ uv_index             &lt;dbl&gt; 0.30, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0…</code></pre>
+$ cloudcover           &lt;int&gt; 100, 100, 100, 100, 100, 100, 100, 97, 52, 100, 1…
+$ uv_index             &lt;dbl&gt; 0.15, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0…</code></pre>
 </div>
 </div>
 </section>
@@ -169,20 +173,20 @@ $ uv_index             &lt;dbl&gt; 0.30, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.0
 <pre><code># A tibble: 7 × 9
   date       min_temp max_temp mean_temp mean_humidity total_precip mean_wind
   &lt;date&gt;        &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;
-1 2025-07-07     72.5     87.9      78.6          82            9.2     14.6 
-2 2025-07-08     73.1     97.7      82.5          76.6          0        9.91
-3 2025-07-09     73       95.2      82.2          71.5          2.3     12.7 
-4 2025-07-10     73.2     95.2      81.9          72.7          6.7     14.3 
-5 2025-07-11     74.1     93.2      81.6          68.2          0.3     13.2 
-6 2025-07-12     72.1     92.5      80.3          75.2          2.3     16.2 
-7 2025-07-13     74.5     92.3      82.5          68.1          0.1     14.8 
+1 2025-07-07     72.5     87.9      78.6          83.1          9.2     14.6 
+2 2025-07-08     73.1     98        81.5          79.5          3.1      9.67
+3 2025-07-09     73.2     95.7      81.4          73            6.6     12.2 
+4 2025-07-10     73.9     94.6      81.9          71.7          1       14.6 
+5 2025-07-11     71.9     87.2      78.8          76.2          1.8      8.55
+6 2025-07-12     74.3     91.3      81.8          67.3          0        6.83
+7 2025-07-13     76.1     92.5      82.3          70.9          2.8      7.36
 # ℹ 2 more variables: mean_cloudcover &lt;dbl&gt;, mean_uv &lt;dbl&gt;</code></pre>
 </div>
 </div>
 </section>
 <section id="flagging-hot-days-based-on-max-temperature" class="level2">
 <h2 class="anchored" data-anchor-id="flagging-hot-days-based-on-max-temperature">Flagging Hot Days Based on Max Temperature</h2>
-<p>To prepare for filtering and visualization, we create a new column that flags “hot days” — defined here as days when the maximum temperature reaches or exceeds 32°C (approximately 90°F).</p>
+<p>To prepare for filtering and visualization, we create a new column that flags “hot days” — defined here as days when the maximum temperature reaches or exceeds.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add a "hot_day" column based on max temperature</span></span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>daily_summary <span class="ot">&lt;-</span> daily_summary <span class="sc">|&gt;</span> </span>
@@ -194,14 +198,151 @@ $ uv_index             &lt;dbl&gt; 0.30, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.0
 <pre><code># A tibble: 7 × 10
   date       min_temp max_temp mean_temp mean_humidity total_precip mean_wind
   &lt;date&gt;        &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;
-1 2025-07-07     72.5     87.9      78.6          82            9.2     14.6 
-2 2025-07-08     73.1     97.7      82.5          76.6          0        9.91
-3 2025-07-09     73       95.2      82.2          71.5          2.3     12.7 
-4 2025-07-10     73.2     95.2      81.9          72.7          6.7     14.3 
-5 2025-07-11     74.1     93.2      81.6          68.2          0.3     13.2 
-6 2025-07-12     72.1     92.5      80.3          75.2          2.3     16.2 
-7 2025-07-13     74.5     92.3      82.5          68.1          0.1     14.8 
+1 2025-07-07     72.5     87.9      78.6          83.1          9.2     14.6 
+2 2025-07-08     73.1     98        81.5          79.5          3.1      9.67
+3 2025-07-09     73.2     95.7      81.4          73            6.6     12.2 
+4 2025-07-10     73.9     94.6      81.9          71.7          1       14.6 
+5 2025-07-11     71.9     87.2      78.8          76.2          1.8      8.55
+6 2025-07-12     74.3     91.3      81.8          67.3          0        6.83
+7 2025-07-13     76.1     92.5      82.3          70.9          2.8      7.36
 # ℹ 3 more variables: mean_cloudcover &lt;dbl&gt;, mean_uv &lt;dbl&gt;, hot_day &lt;lgl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="summarizing-the-weather-data" class="level2">
+<h2 class="anchored" data-anchor-id="summarizing-the-weather-data">Summarizing the Weather Data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#contingency table of hot vs not-hot</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">table</span>(daily_summary<span class="sc">$</span>hot_day)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+FALSE  TRUE 
+    2     5 </code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co">#summary statistics grouped by hot_day</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>daily_summary <span class="sc">|&gt;</span> </span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(hot_day) <span class="sc">|&gt;</span> </span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_uv =</span> <span class="fu">mean</span>(mean_uv, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_humidity =</span> <span class="fu">mean</span>(mean_humidity, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_precip =</span> <span class="fu">mean</span>(total_precip, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>  )</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 4
+  hot_day mean_uv mean_humidity mean_precip
+  &lt;lgl&gt;     &lt;dbl&gt;         &lt;dbl&gt;       &lt;dbl&gt;
+1 FALSE      2.19          79.7         5.5
+2 TRUE       2.29          72.5         2.7</code></pre>
+</div>
+</div>
+</section>
+<section id="creating-plots" class="level2">
+<h2 class="anchored" data-anchor-id="creating-plots">Creating Plots</h2>
+<p>Plot 1: Daily Temperature Ranges (Min, Mean, Max)</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>daily_summary_long <span class="ot">&lt;-</span> daily_summary <span class="sc">|&gt;</span> </span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(min_temp, mean_temp, max_temp),</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">"Temperature_Type"</span>, <span class="at">values_to =</span> <span class="st">"Temperature"</span>)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(daily_summary_long, <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> Temperature, <span class="at">color =</span> Temperature_Type)) <span class="sc">+</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_line</span>(<span class="at">linewidth =</span> <span class="fl">1.2</span>) <span class="sc">+</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">size =</span> <span class="dv">2</span>) <span class="sc">+</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Daily Temperature Ranges"</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Date"</span>, <span class="at">y =</span> <span class="st">"Temperature (°F)"</span>, <span class="at">color =</span> <span class="st">"Type"</span>) <span class="sc">+</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="outline_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Plot 2: UV Index Bar Chart with Gradient Fill</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(daily_summary, <span class="fu">aes</span>(<span class="at">x =</span> date, <span class="at">y =</span> mean_uv, <span class="at">fill =</span> mean_uv)) <span class="sc">+</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_col</span>(<span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_viridis_c</span>(<span class="at">option =</span> <span class="st">"D"</span>, <span class="at">name =</span> <span class="st">"UV Index"</span>) <span class="sc">+</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Daily Mean UV Index (Gradient Colored)"</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Date"</span>, <span class="at">y =</span> <span class="st">"Mean UV Index"</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">axis.text.x =</span> <span class="fu">element_text</span>(<span class="at">angle =</span> <span class="dv">45</span>, <span class="at">hjust =</span> <span class="dv">1</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="outline_files/figure-html/unnamed-chunk-6-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Plot 3: Bubble Plot — Humidity vs Temperature</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co">#simulate hourly-like data around the mean temps for hot days</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">123</span>)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>sim_data <span class="ot">&lt;-</span> daily_summary <span class="sc">|&gt;</span></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(hot_day) <span class="sc">|&gt;</span></span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rowwise</span>() <span class="sc">|&gt;</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hourly_temps =</span> <span class="fu">list</span>(<span class="fu">rnorm</span>(<span class="dv">24</span>, <span class="at">mean =</span> mean_temp, <span class="at">sd =</span> <span class="fl">1.2</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">unnest</span>(hourly_temps) <span class="sc">|&gt;</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">date =</span> <span class="fu">format</span>(date, <span class="st">"%b %d"</span>))</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="co">#ridgeline plot</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(sim_data, <span class="fu">aes</span>(<span class="at">x =</span> hourly_temps, <span class="at">y =</span> <span class="fu">fct_rev</span>(<span class="fu">factor</span>(date)), <span class="at">fill =</span> date)) <span class="sc">+</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>(<span class="at">scale =</span> <span class="fl">1.2</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>, <span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Temperature Distribution on Hot Days"</span>,</span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">subtitle =</span> <span class="st">"Hourly-level simulation from daily mean temperatures"</span>,</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Temperature (°F)"</span>,</span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">y =</span> <span class="st">"Hot Day"</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"none"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>Picking joint bandwidth of 0.443</code></pre>
+</div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="outline_files/figure-html/unnamed-chunk-7-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+<p>Plot 4: Heatmap of Cloud Cover</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co">#create date + hour breakdown</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>cloudcover_hourly <span class="ot">&lt;-</span> temp_df <span class="sc">|&gt;</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    <span class="at">datetime =</span> <span class="fu">ymd_hm</span>(time),</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">date =</span> <span class="fu">as_date</span>(datetime),</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">hour =</span> <span class="fu">hour</span>(datetime)</span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">|&gt;</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(date, hour) <span class="sc">|&gt;</span></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">cloud =</span> <span class="fu">mean</span>(cloudcover, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), <span class="at">.groups =</span> <span class="st">"drop"</span>)</span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="co">#heatmap with shades of blue</span></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(cloudcover_hourly, <span class="fu">aes</span>(<span class="at">x =</span> hour, <span class="at">y =</span> date, <span class="at">fill =</span> cloud)) <span class="sc">+</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_tile</span>(<span class="at">color =</span> <span class="st">"white"</span>) <span class="sc">+</span></span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_gradient</span>(</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">name =</span> <span class="st">"Cloud Cover (%)"</span>,</span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">low =</span> <span class="st">"#deebf7"</span>,   <span class="co"># light blue</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">high =</span> <span class="st">"#08519c"</span>   <span class="co"># dark blue</span></span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(</span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a>    <span class="at">title =</span> <span class="st">"Cloud Cover Heatmap by Date and Hour"</span>,</span>
+<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a>    <span class="at">x =</span> <span class="st">"Hour of Day"</span>, <span class="at">y =</span> <span class="st">"Date"</span></span>
+<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a>  ) <span class="sc">+</span></span>
+<span id="cb16-23"><a href="#cb16-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="outline_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
 </div>
 </div>
 </section>
