@@ -22,7 +22,13 @@ We begin by retrieving hourly temperature data for Raleigh, NC using the public 
 
 ```{r}
 #URL for hourly temperature forecast in Raleigh, NC
-url <- "https://api.open-meteo.com/v1/forecast?latitude=35.78&longitude=-78.64&hourly=temperature_2m&temperature_unit=fahrenheit"
+#make sure to have 6 hourly variables and Fahrenheit for temperature
+url <- paste0(
+  "https://api.open-meteo.com/v1/forecast?",
+  "latitude=35.78&longitude=-78.64&",
+  "hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,cloudcover,uv_index&",
+  "temperature_unit=fahrenheit"
+)
 
 
 #get and parse data
@@ -46,14 +52,33 @@ temp_df <- temp_df |>
          date = as_date(datetime)) #extract just the date for daily summarization
 
 #group by date and summarize
-daily_summary <- temp_df |> 
-  group_by(date) |> 
+daily_summary <- temp_df |>
+  group_by(date) |>
   summarise(
     min_temp = min(temperature_2m, na.rm = TRUE),
     max_temp = max(temperature_2m, na.rm = TRUE),
     mean_temp = mean(temperature_2m, na.rm = TRUE),
+    mean_humidity = mean(relative_humidity_2m, na.rm = TRUE),
+    total_precip = sum(precipitation, na.rm = TRUE),
+    mean_wind = mean(wind_speed_10m, na.rm = TRUE),
+    mean_cloudcover = mean(cloudcover, na.rm = TRUE),
+    mean_uv = mean(uv_index, na.rm = TRUE),
     .groups = "drop"
   )
+
+
+#display table
+daily_summary
+```
+
+## Flagging Hot Days Based on Max Temperature
+
+To prepare for filtering and visualization, we create a new column that flags "hot days" — defined here as days when the maximum temperature reaches or exceeds 32°C (approximately 90°F).
+
+```{r}
+#add a "hot_day" column based on max temperature
+daily_summary <- daily_summary |> 
+  mutate(hot_day = max_temp >= 90)
 
 #display table
 daily_summary

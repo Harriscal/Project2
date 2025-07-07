@@ -108,21 +108,33 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>We begin by retrieving hourly temperature data for Raleigh, NC using the public Open-Meteo API. No API key is required. The response includes hourly forecasts such as temperature, wind, and precipitation.</p>
 <div class="cell">
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">#URL for hourly temperature forecast in Raleigh, NC</span></span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="st">"https://api.open-meteo.com/v1/forecast?latitude=35.78&amp;longitude=-78.64&amp;hourly=temperature_2m"</span></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co">#get and parse data</span></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>weather_raw <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(url)</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co">#extract hourly temperature data</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>temp_df <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(weather_raw<span class="sc">$</span>hourly)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="co">#make sure to have 6 hourly variables and Fahrenheit for temperature</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>url <span class="ot">&lt;-</span> <span class="fu">paste0</span>(</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"https://api.open-meteo.com/v1/forecast?"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>  <span class="st">"latitude=35.78&amp;longitude=-78.64&amp;"</span>,</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>  <span class="st">"hourly=temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,cloudcover,uv_index&amp;"</span>,</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>  <span class="st">"temperature_unit=fahrenheit"</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="co">#display some of the data</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(temp_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">#get and parse data</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>weather_raw <span class="ot">&lt;-</span> <span class="fu">fromJSON</span>(url)</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="co">#extract hourly temperature data</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>temp_df <span class="ot">&lt;-</span> <span class="fu">as_tibble</span>(weather_raw<span class="sc">$</span>hourly)</span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#display some of the data</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu">glimpse</span>(temp_df)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Rows: 168
-Columns: 2
-$ time           &lt;chr&gt; "2025-07-06T00:00", "2025-07-06T01:00", "2025-07-06T02:…
-$ temperature_2m &lt;dbl&gt; 25.6, 23.7, 23.6, 23.8, 23.1, 22.9, 22.6, 22.4, 22.5, 2…</code></pre>
+Columns: 7
+$ time                 &lt;chr&gt; "2025-07-07T00:00", "2025-07-07T01:00", "2025-07-…
+$ temperature_2m       &lt;dbl&gt; 74.8, 73.4, 73.0, 72.8, 72.8, 72.7, 73.5, 73.8, 7…
+$ relative_humidity_2m &lt;int&gt; 88, 90, 94, 95, 95, 98, 94, 92, 91, 90, 91, 90, 8…
+$ precipitation        &lt;dbl&gt; 4.6, 2.4, 2.2, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,…
+$ wind_speed_10m       &lt;dbl&gt; 20.9, 20.9, 23.6, 18.7, 17.7, 13.7, 13.7, 16.5, 1…
+$ cloudcover           &lt;int&gt; 100, 100, 100, 100, 100, 100, 100, 100, 96, 39, 2…
+$ uv_index             &lt;dbl&gt; 0.30, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0.00, 0…</code></pre>
 </div>
 </div>
 </section>
@@ -136,28 +148,60 @@ $ temperature_2m &lt;dbl&gt; 25.6, 23.7, 23.6, 23.8, 23.1, 22.9, 22.6, 22.4, 22.
 <span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">date =</span> <span class="fu">as_date</span>(datetime)) <span class="co">#extract just the date for daily summarization</span></span>
 <span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a><span class="co">#group by date and summarize</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>daily_summary <span class="ot">&lt;-</span> temp_df <span class="sc">|&gt;</span> </span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(date) <span class="sc">|&gt;</span> </span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>daily_summary <span class="ot">&lt;-</span> temp_df <span class="sc">|&gt;</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(date) <span class="sc">|&gt;</span></span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(</span>
 <span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    <span class="at">min_temp =</span> <span class="fu">min</span>(temperature_2m, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    <span class="at">max_temp =</span> <span class="fu">max</span>(temperature_2m, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
 <span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_temp =</span> <span class="fu">mean</span>(temperature_2m, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a><span class="co">#display table</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>daily_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_humidity =</span> <span class="fu">mean</span>(relative_humidity_2m, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">total_precip =</span> <span class="fu">sum</span>(precipitation, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_wind =</span> <span class="fu">mean</span>(wind_speed_10m, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_cloudcover =</span> <span class="fu">mean</span>(cloudcover, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>    <span class="at">mean_uv =</span> <span class="fu">mean</span>(uv_index, <span class="at">na.rm =</span> <span class="cn">TRUE</span>),</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>    <span class="at">.groups =</span> <span class="st">"drop"</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  )</span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a><span class="co">#display table</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>daily_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code># A tibble: 7 × 4
-  date       min_temp max_temp mean_temp
-  &lt;date&gt;        &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
-1 2025-07-06     22.4     25.6      23.9
-2 2025-07-07     22.6     31.1      26.0
-3 2025-07-08     22.8     36.5      28.0
-4 2025-07-09     22.8     35.1      27.9
-5 2025-07-10     22.9     35.1      27.7
-6 2025-07-11     23.4     34        27.5
-7 2025-07-12     22.3     33.6      26.8</code></pre>
+<pre><code># A tibble: 7 × 9
+  date       min_temp max_temp mean_temp mean_humidity total_precip mean_wind
+  &lt;date&gt;        &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;
+1 2025-07-07     72.5     87.9      78.6          82            9.2     14.6 
+2 2025-07-08     73.1     97.7      82.5          76.6          0        9.91
+3 2025-07-09     73       95.2      82.2          71.5          2.3     12.7 
+4 2025-07-10     73.2     95.2      81.9          72.7          6.7     14.3 
+5 2025-07-11     74.1     93.2      81.6          68.2          0.3     13.2 
+6 2025-07-12     72.1     92.5      80.3          75.2          2.3     16.2 
+7 2025-07-13     74.5     92.3      82.5          68.1          0.1     14.8 
+# ℹ 2 more variables: mean_cloudcover &lt;dbl&gt;, mean_uv &lt;dbl&gt;</code></pre>
+</div>
+</div>
+</section>
+<section id="flagging-hot-days-based-on-max-temperature" class="level2">
+<h2 class="anchored" data-anchor-id="flagging-hot-days-based-on-max-temperature">Flagging Hot Days Based on Max Temperature</h2>
+<p>To prepare for filtering and visualization, we create a new column that flags “hot days” — defined here as days when the maximum temperature reaches or exceeds 32°C (approximately 90°F).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#add a "hot_day" column based on max temperature</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>daily_summary <span class="ot">&lt;-</span> daily_summary <span class="sc">|&gt;</span> </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">hot_day =</span> max_temp <span class="sc">&gt;=</span> <span class="dv">90</span>)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="co">#display table</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>daily_summary</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 7 × 10
+  date       min_temp max_temp mean_temp mean_humidity total_precip mean_wind
+  &lt;date&gt;        &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;         &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;
+1 2025-07-07     72.5     87.9      78.6          82            9.2     14.6 
+2 2025-07-08     73.1     97.7      82.5          76.6          0        9.91
+3 2025-07-09     73       95.2      82.2          71.5          2.3     12.7 
+4 2025-07-10     73.2     95.2      81.9          72.7          6.7     14.3 
+5 2025-07-11     74.1     93.2      81.6          68.2          0.3     13.2 
+6 2025-07-12     72.1     92.5      80.3          75.2          2.3     16.2 
+7 2025-07-13     74.5     92.3      82.5          68.1          0.1     14.8 
+# ℹ 3 more variables: mean_cloudcover &lt;dbl&gt;, mean_uv &lt;dbl&gt;, hot_day &lt;lgl&gt;</code></pre>
 </div>
 </div>
 </section>
